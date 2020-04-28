@@ -1,0 +1,127 @@
+! Links definitions
+option, warn,info;
+system,"ln -fns /afs/cern.ch/eng/lhc/optics/runII/2018 db5";
+
+is_thin=0;
+
+! Sequence definition
+Option, -echo,-warn,-info;
+call,file="db5/lhc_as-built.seq";
+if (is_thin==1){call,file="db5/toolkit/slice.madx";};
+!Option, -echo,warn,info;
+
+call, file="db5/PROTON/opticsfile.22";
+
+call, file="db5/aperture/aperture_as-built.b1.madx";
+
+
+NRJ=6500;
+
+! additional file
+
+! crossing conditions
+on_x1=-145;
+on_sep1=-0.55;
+on_o1=0;
+on_x2=-120;
+on_sep2=2;
+on_o2=0;
+on_oe2=0;
+on_a2=0;
+on_x5=145;
+on_sep5=0.55;
+on_o5=0;
+on_x8=-230;
+on_sep8=-1;
+on_o8=0;
+on_a8=0;
+! new crossing knobs (offset):
+on_oh1=0;
+on_ov1=0;
+on_oh2=0;
+on_ov2=0;
+on_oh5=0;
+on_ov5=0;
+on_oh8=0;
+on_ov8=0;
+
+! spectrometers
+on_alice:=0/NRJ;
+on_lhcb:=-0/NRJ;
+! tune
+myQH=62.28;
+myQV=60.31;
+myQPH=3.0;
+myQPV=3.0;
+
+! Beam definition
+beam, sequence=lhcb1, bv= 1, energy=NRJ,  particle=proton,
+  npart=1.2e11,kbunch=2748, ex=7.29767146889e-09,ey=7.29767146889e-09;
+beam, sequence=lhcb2, bv=-1, energy=NRj,  particle=proton,
+  npart=1.2e11,kbunch=2748, ex=7.29767146889e-09,ey=7.29767146889e-09;
+
+! matching chroma
+call, file="db5/toolkit/match-tune-coll-ats.madx";
+call, file="db5/toolkit/match-chroma-ats.madx";
+
+
+set,format={"13.6e","-5s"};
+select,flag=twiss,clear;
+select,flag=twiss, pattern="IP[1258]$",column=name,betx,bety,x,y,px,py;
+
+use, sequence=lhcb1;twiss;write,table=twiss;
+use, sequence=lhcb2;twiss;write,table=twiss;
+
+
+set,format=".15g";
+! ----------------------------------------------------------
+! B1
+! ----------------------------------------------------------
+! - flatten
+seqedit, sequence=lhcb1;
+flatten;
+cycle, start=LHCB1$START;
+endedit;
+! - dump twiss
+use,sequence=lhcb1;
+ select, flag=twiss, clear;
+! select, flag=twiss, column=KEYWORD,NAME,S,L,X,Y,BETX,BETY,ALFX,ALFY,MUX,MUY,DX,DY,DPX,DPY,PX,PY;
+ select, flag=twiss, column=NAME,KEYWORD,S,L,KS,KSL,K0L,K1L,K2L,K3L,K4L,K1S,K2S,K3S,K4S,HKICK,VKICK,BETX,BETY,ALFX,ALFY,MUX,MUY,DX,DY,DPX,DPY,R11,R12,R22,R21,X,PX,Y,PY,T,DELTAP,VOLT,LAG,HARMON,FREQ,E1,E2,APERTYPE,APER_1,APER_2,APER_3,APER_4,TILT,ANGLE,assembly_ID,mech_sep;
+twiss,  sequence=lhcb1, file="twiss.lhc_2018.b1.tfs"; save;
+! select, flag=twiss, clear;
+! select, flag=twiss, column=KEYWORD,NAME,S,L,ANGLE,K0L,K1L,HKICK,VKICK,KICK;
+!twiss,  sequence=lhcb1, file="geo.B1.tfs"; save;
+
+! create sixtrack input files
+! sixtrack, radius=17E-03;
+
+select, flag=twiss, clear;
+select, flag=twiss, column=NAME,KEYWORD,S,L,APER_1,APER_2,APER_3,APER_4,APERTYPE;
+twiss,  sequence=lhcb1, file="aperture.lhc_2018.b1.tfs"; save;
+
+system, 'sed -i "/BTVSS.6L2.B1/d" aperture.lhc_2018.b1.tfs';
+
+! ----------------------------------------------------------
+! B2
+! ----------------------------------------------------------
+! - flatten
+seqedit, sequence=lhcb2;
+flatten;
+cycle, start=LHCB2$START;
+endedit;
+! - dump twiss
+use,sequence=lhcb2;
+ select, flag=twiss, clear;
+! select, flag=twiss, column=KEYWORD,NAME,S,L,X,Y,BETX,BETY,ALFX,ALFY,MUX,MUY,DX,DY,DPX,DPY,PX,PY;
+select, flag=twiss, column=NAME,KEYWORD,S,L,KS,KSL,K0L,K1L,K2L,K3L,K4L,K1S,K2S,K3S,K4S,HKICK,VKICK,BETX,BETY,ALFX,ALFY,MUX,MUY,DX,DY,DPX,DPY,R11,R12,R22,R21,X,PX,Y,PY,T,DELTAP,VOLT,LAG,HARMON,FREQ,E1,E2,APERTYPE,APER_1,APER_2,APER_3,APER_4,TILT,ANGLE,assembly_ID,mech_sep;
+twiss,  sequence=lhcb2, file="twiss.lhc_2018.b2.tfs"; save;
+! select, flag=twiss, clear;
+! select, flag=twiss, column=KEYWORD,NAME,S,L,ANGLE,K0L,K1L,HKICK,VKICK,KICK;
+!twiss,  sequence=lhcb2, file="geo.B2.tfs"; save;
+
+! create sixtrack input files
+! sixtrack, radius=17E-03;
+
+
+
+system,"rm db5";

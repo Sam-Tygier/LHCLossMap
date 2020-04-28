@@ -1,0 +1,13 @@
+run_name=lhc_2018_b1
+seed2=89564
+optics=twiss.lhc_2018.b1.tfs
+collimators=collimator.lhc_2018.b1.tfs
+apertures=aperture.lhc_2018.b1.tfs
+beam_energy=6500
+normalized_emittance=3.5e-6
+npart = 1000
+nturns = 200
+loss_plane=h
+start_element=TCP.C6L7.B1
+#detailed_loss_output=*TCT*
+
